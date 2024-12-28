@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NYU Coupon Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+      }
+
+      body {
+        background-color: #f8f9fa;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+      }
+
+      h1 {
+        text-align: center;
+        font-size: 2.5rem;
+        color: #57068c;
+        grid-column: 1 / -1;
+        margin-bottom: 40px;
+        font-weight: 500;
+      }
+
+      .form-section,
+      .qr-section,
+      .instructions {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .qr-section {
+        text-align: center;
+      }
+
+      .form-group {
+        margin-bottom: 24px;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #333;
+      }
+
+      select,
+      input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 16px;
+        background: white;
+      }
+
+      button {
+        background-color: #57068c;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        width: 100%;
+        transition: background-color 0.2s;
+      }
+
+      button:hover {
+        background-color: #3d046a;
+      }
+
+      .qr-placeholder {
+        margin: 40px 0;
+        color: #666;
+      }
+
+      .instructions {
+        grid-column: 1 / -1;
+      }
+
+      .step {
+        margin-bottom: 16px;
+        background: #f8f9fa;
+        padding: 16px 20px;
+        border-radius: 8px;
+      }
+
+      .step-number {
+        color: #57068c;
+        font-weight: 500;
+        margin-right: 8px;
+      }
+
+      #qrCode img {
+        max-width: 200px;
+        margin: 20px auto;
+      }
+
+      h2 {
+        color: #333;
+        margin-bottom: 24px;
+        font-weight: 500;
+      }
+
+      .share-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        max-width: 400px;
+        margin: 20px auto 0;
+      }
+
+      #loadingSpinner {
+        display: none;
+        text-align: center;
+        padding: 20px;
+      }
+
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 4px solid #57068c;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      #errorAlert {
+        display: none;
+        color: #d93025;
+        background-color: #fce8e6;
+        padding: 12px;
+        border-radius: 4px;
+        margin-top: 12px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>NYU Coupon Generator</h1>
+
+      <div class="form-section">
+        <form id="couponForm" onsubmit="return generateCoupon()">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Name</label>
+              <input type="text" id="name" required />
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="serviceType">Service Type</label>
+            <select id="serviceType" required>
+              <option value="">Select a service type</option>
+              <option value="NYU Bookstore">NYU Bookstore</option>
+              <option value="Dining and Cafeteria">Dining and Cafeteria</option>
+              <option value="Gym Membership">Gym Membership</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="discountAmount">Discount Amount (%)</label>
+            <input
+              type="number"
+              id="discountAmount"
+              min="1"
+              max="100"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="expirationDate">Expiration Date</label>
+            <input type="date" id="expirationDate" required />
+          </div>
+
+          <div class="form-group">
+            <label for="maxUses">Number of Uses</label>
+            <select id="maxUses" required>
+              <option value="">Select number of uses</option>
+              <option value="1">1 use</option>
+              <option value="2">2 uses</option>
+              <option value="3">3 uses</option>
+              <option value="4">4 uses</option>
+              <option value="5">5 uses</option>
+              <option value="6">6 uses</option>
+              <option value="7">7 uses</option>
+              <option value="8">8 uses</option>
+              <option value="9">9 uses</option>
+              <option value="10">10 uses</option>
+              <option value="unlimited">Unlimited</option>
+            </select>
+          </div>
+
+          <button type="submit">Generate Coupon</button>
+        </form>
+        <div id="errorAlert"></div>
+      </div>
+
+      <div class="qr-section" id="resultCard">
+        <h2>Your Generated Coupon QR Code</h2>
+        <div id="qrCode">
+          <p class="qr-placeholder">Will be displayed here</p>
+        </div>
+        <div id="shareOptions" style="display: none">
+          <p style="color: #666; margin: 20px 0">Share via:</p>
+          <div class="share-buttons">
+            <button onclick="shareViaEmail()">Email</button>
+            <button onclick="shareViaSMS()">SMS</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="loadingSpinner">
+        <div class="spinner"></div>
+      </div>
+
+      <div class="instructions">
+        <h2>How to Use Your Coupon</h2>
+        <div class="step">
+          <span class="step-number">Step 1:</span>Add coupon to your wallet by
+          scanning the QR code with your first device
+        </div>
+        <div class="step">
+          <span class="step-number">Step 2:</span>Open camera app in your second
+          device (scanning device), then scan the coupon in first device. When
+          prompted, enter authorization code: <b>9913</b>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function generateCoupon() {
+        const validation = validateFormData();
+        if (!validation.isValid) {
+          handleError(validation.errors.join("\n"));
+          return false;
+        }
+
+        document.getElementById("loadingSpinner").style.display = "block";
+        document.getElementById("resultCard").style.display = "none";
+        document.getElementById("errorAlert").style.display = "none";
+
+        const data = {
+          name: document.getElementById("name").value.trim(),
+          email: document.getElementById("email").value.trim(),
+          serviceType: document.getElementById("serviceType").value,
+          discountAmount: document.getElementById("discountAmount").value,
+          expirationDate: document.getElementById("expirationDate").value,
+          maxUses: document.getElementById("maxUses").value,
+        };
+
+        if (!validateInputs(data)) {
+          return false;
+        }
+
+        google.script.run
+          .withSuccessHandler(handleCouponSuccess)
+          .withFailureHandler(handleError)
+          .generateCoupon(data);
+
+        return false;
+      }
+
+      function validateFormData() {
+        const serviceType = document.getElementById("serviceType").value;
+        const discountAmount = document.getElementById("discountAmount").value;
+        const expirationDate = document.getElementById("expirationDate").value;
+        const maxUses = document.getElementById("maxUses").value;
+
+        const errors = [];
+
+        if (!serviceType) {
+          errors.push("Please select a service type");
+        }
+
+        if (!discountAmount || discountAmount < 1 || discountAmount > 100) {
+          errors.push("Discount amount must be between 1 and 100");
+        }
+
+        if (!expirationDate || new Date(expirationDate) <= new Date()) {
+          errors.push("Please select a future expiration date");
+        }
+
+        if (!maxUses) {
+          errors.push("Please select number of uses");
+        }
+
+        return {
+          isValid: errors.length === 0,
+          errors: errors,
+        };
+      }
+
+      function validateInputs(data) {
+        const today = new Date();
+        const expDate = new Date(data.expirationDate);
+
+        if (expDate <= today) {
+          handleError("Expiration date must be in the future");
+          return false;
+        }
+
+        if (data.discountAmount < 1 || data.discountAmount > 100) {
+          handleError("Discount amount must be between 1 and 100");
+          return false;
+        }
+
+        return true;
+      }
+
+      function handleCouponSuccess(response) {
+        document.getElementById("loadingSpinner").style.display = "none";
+        document.getElementById("resultCard").style.display = "block";
+
+        if (response.success) {
+          const qrCodeContainer = document.getElementById("qrCode");
+
+          qrCodeContainer.innerHTML = "";
+
+          new QRCode(qrCodeContainer, {
+            text: response.qrCodeUrl,
+            width: 200,
+            height: 200,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H,
+          });
+
+          document.getElementById("shareOptions").style.display = "block";
+          document.getElementById("resultCard").dataset.passUrl =
+            response.passUrl;
+        } else {
+          handleError(response.error || "Failed to generate coupon");
+        }
+      }
+
+      function handleError(error) {
+        document.getElementById("loadingSpinner").style.display = "none";
+        document.getElementById("resultCard").style.display = "block";
+        const errorAlert = document.getElementById("errorAlert");
+        errorAlert.textContent = error;
+        errorAlert.style.display = "block";
+      }
+
+      function shareViaEmail() {
+        const email = prompt("Enter recipient email address:");
+        if (email && validateEmail(email)) {
+          const passUrl = document.getElementById("resultCard").dataset.passUrl;
+
+          google.script.run
+            .withSuccessHandler(() => alert("Email sent successfully!"))
+            .withFailureHandler(handleError)
+            .sendEmail(email, passUrl);
+        }
+      }
+
+      function shareViaSMS() {
+        const phone = prompt("Enter recipient phone number:");
+        if (phone && validatePhone(phone)) {
+          const passUrl = document.getElementById("resultCard").dataset.passUrl;
+
+          google.script.run
+            .withSuccessHandler(() => alert("SMS sent successfully!"))
+            .withFailureHandler(handleError)
+            .sendSMS(phone, passUrl);
+        }
+      }
+
+      function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+      }
+
+      function validatePhone(phone) {
+        const re = /^\+?[\d\s-]{10,}$/;
+        return re.test(phone);
+      }
+    </script>
+  </body>
+</html>
