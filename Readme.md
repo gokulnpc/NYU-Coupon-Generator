@@ -50,27 +50,6 @@ A serverless digital coupon management system that seamlessly integrates with Ap
 - PassSlot API access
 - QR code scanning capability
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-```bash
-# Clone the repository
-git clone https://github.com/gokulnpc/NYU-Coupon-Generator.git
-
-```
-
-### Configuration
-
-1. Add your API keys and configuration:
-
-```
-const SHEET_NAME = "";
-const PASSSLOT_API_KEY = "";
-const TWILIO_SID = "";
-const TWILIO_SECRET = "";
-```
-
 ## 📖 Documentation
 
 - [API Documentation](https://www.passslot.com/developer/api/resources)
